@@ -40,4 +40,10 @@ public class SignController {
         return signService.parseToken(token);
     }
 
+    @GetMapping("/health")
+    public ResponseEntity<CommonResult> healthCheck() {
+        
+        return ResponseEntity.ok(ResponseFactory.getSuccessResult());
+    }
+
 }
