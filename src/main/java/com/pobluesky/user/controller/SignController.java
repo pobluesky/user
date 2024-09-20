@@ -14,6 +14,7 @@ import com.pobluesky.global.util.ResponseFactory;
 import com.pobluesky.global.util.model.CommonResult;
 import com.pobluesky.global.util.model.JsonResult;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
