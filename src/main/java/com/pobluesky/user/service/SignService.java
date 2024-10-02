@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
+//import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,8 @@ public class SignService {
 
     private final JwtTokenProvider jwtTokenProvider;
 
+//    private final KafkaTemplate<String, String> kafkaTemplate;
+
     @Transactional
     public JwtToken signIn(String email, String password) {
         User user = Stream.of(
@@ -47,6 +50,8 @@ public class SignService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new CommonException(ErrorCode.INVALID_PASSWORD);
         }
+        
+//        kafkaTemplate.send("user", "user-signin-"+ email);
 
         return jwtTokenProvider.generateToken(
             email,

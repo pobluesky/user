@@ -1,5 +1,6 @@
 package com.pobluesky.user.controller;
 
+import com.pobluesky.global.security.UserRole;
 import com.pobluesky.user.dto.request.ManagerCreateRequestDTO;
 import com.pobluesky.user.dto.request.ManagerUpdateRequestDTO;
 import com.pobluesky.user.dto.response.ManagerResponseDTO;
@@ -8,6 +9,7 @@ import com.pobluesky.user.dto.response.ManagerSummaryResponseDTO;
 import com.pobluesky.global.util.ResponseFactory;
 import com.pobluesky.global.util.model.CommonResult;
 import com.pobluesky.global.util.model.JsonResult;
+import com.pobluesky.user.entity.Manager;
 import com.pobluesky.user.service.ManagerService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,11 +69,38 @@ public class ManagerController {
             .body(ResponseFactory.getSuccessJsonResult(response));
     }
 
+    @GetMapping("/role")
+    @Operation(summary = "userRole에 따른 매니저 조회")
+    public ResponseEntity<JsonResult> getManagerByRole(@RequestParam("role") UserRole role) {
+        List<ManagerResponseDTO> response = managerService.getManagersByRole(role);
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ResponseFactory.getSuccessJsonResult(response));
+    }
+
     @GetMapping
     @Operation(summary = "담당자 조회")
     public ResponseEntity<JsonResult> getManagers() {
         List<ManagerResponseDTO> response = managerService.getManagers();
-        
+
+        return ResponseEntity.status(HttpStatus.OK)
+            . body(ResponseFactory.getSuccessJsonResult(response));
+    }
+
+    @GetMapping("/sales")
+    @Operation(summary = "판매 담당자 조회")
+    public ResponseEntity<JsonResult> getSaleManagers() {
+        List<ManagerSummaryResponseDTO> response = managerService.getSaleManagers();
+
+        return ResponseEntity.status(HttpStatus.OK)
+            . body(ResponseFactory.getSuccessJsonResult(response));
+    }
+
+    @GetMapping("/quality")
+    @Operation(summary = "품질 담당자 조회")
+    public ResponseEntity<JsonResult> getQualityManagers() {
+        List<ManagerSummaryResponseDTO> response = managerService.getQualityManagers();
+
         return ResponseEntity.status(HttpStatus.OK)
             . body(ResponseFactory.getSuccessJsonResult(response));
     }
@@ -87,6 +116,8 @@ public class ManagerController {
         return ResponseEntity.status(HttpStatus.OK)
             .body(ResponseFactory.getSuccessJsonResult(response));
     }
+
+
 
     @PostMapping("/sign-up")
     @Operation(summary = "담당자 회원가입")

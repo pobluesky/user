@@ -1,9 +1,11 @@
 package com.pobluesky.user.service;
 
+import com.pobluesky.global.security.UserRole;
 import com.pobluesky.user.dto.request.ManagerCreateRequestDTO;
 import com.pobluesky.user.dto.request.ManagerUpdateRequestDTO;
 import com.pobluesky.user.dto.response.ManagerResponseDTO;
 import com.pobluesky.user.dto.response.ManagerSummaryResponseDTO;
+import com.pobluesky.user.dto.response.MobileManagerResponseDTO;
 import com.pobluesky.user.entity.Manager;
 
 import com.pobluesky.global.error.CommonException;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+//import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,8 @@ public class ManagerService {
     private final ManagerRepository managerRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+//    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Transactional
     public ManagerResponseDTO signUp(ManagerCreateRequestDTO signUpDto) {
@@ -50,6 +55,24 @@ public class ManagerService {
 
         return managers.stream()
             .map(ManagerResponseDTO::from)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerSummaryResponseDTO> getSaleManagers() {
+        List<Manager> managers = managerRepository.findByRole(UserRole.SALES);
+
+        return managers.stream()
+            .map(ManagerSummaryResponseDTO::from)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerSummaryResponseDTO> getQualityManagers() {
+        List<Manager> managers = managerRepository.findByRole(UserRole.QUALITY);
+
+        return managers.stream()
+            .map(ManagerSummaryResponseDTO::from)
             .collect(Collectors.toList());
     }
 
@@ -86,9 +109,11 @@ public class ManagerService {
         manager.updateManager(
             managerUpdateRequestDTO.name(),
             managerUpdateRequestDTO.email(),
-            managerUpdateRequestDTO.password(),
+            passwordEncoder.encode(managerUpdateRequestDTO.password()),
             managerUpdateRequestDTO.phone()
         );
+
+//        kafkaTemplate.send("user", "manager-update-"+ manager.getName());
 
         return ManagerResponseDTO.from(manager);
     }
@@ -108,7 +133,22 @@ public class ManagerService {
 
         if (!userId.equals(targetId))
             throw new CommonException(ErrorCode.USER_NOT_MATCHED);
+
+//        kafkaTemplate.send("user", "manager-delete-"+ manager.getName());
+
         return manager;
+    }
+    @Transactional(readOnly = true)
+    public MobileManagerResponseDTO getManagerByIdForMobile(String token, Long targetId) {
+        Long userId = signService.parseToken(token);
+
+        if (!userId.equals(targetId))
+            throw new CommonException(ErrorCode.USER_NOT_MATCHED);
+
+        Manager manager = managerRepository.findById(userId)
+                .orElseThrow(() -> new CommonException(ErrorCode.USER_NOT_FOUND));
+
+        return  MobileManagerResponseDTO.from(manager);
     }
 
     public boolean existsById(Long userId) {
@@ -120,5 +160,12 @@ public class ManagerService {
         return managerRepository.findById(userId)
             .map(ManagerResponseDTO::from)
             .orElseThrow(() -> new CommonException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public List<ManagerResponseDTO> getManagersByRole(UserRole role) {
+        List<Manager> managers = managerRepository.findByRole(role);
+        return managers.stream()
+            .map(ManagerResponseDTO::from)
+            .collect(Collectors.toList());
     }
 }

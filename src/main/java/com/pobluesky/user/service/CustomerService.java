@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+//import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,8 @@ public class CustomerService {
 
     private final PasswordEncoder passwordEncoder;
 
+//    private final KafkaTemplate<String, String> kafkaTemplate;
+
     @Transactional
     public CustomerResponseDTO signUp(CustomerCreateRequestDTO signUpDto) {
         if (customerRepository.existsByEmail(signUpDto.email()))
@@ -37,6 +40,8 @@ public class CustomerService {
         String encodedPassword = passwordEncoder.encode(signUpDto.password());
 
         Customer customer = signUpDto.toCustomerEntity(encodedPassword, "USER");
+
+//        kafkaTemplate.send("user", "customer-sign-up");
 
         return CustomerResponseDTO.from(customerRepository.save(customer));
     }
@@ -77,12 +82,16 @@ public class CustomerService {
         if (!userId.equals(targetId))
             throw new CommonException(ErrorCode.USER_NOT_MATCHED);
 
+//        kafkaTemplate.send("user", "customer-update-" + customer.getUsername());
+
         customer.updateCustomer(
             customerUpdateRequestDTO.name(),
             customerUpdateRequestDTO.email(),
             passwordEncoder.encode(customerUpdateRequestDTO.password()),
-            customerUpdateRequestDTO.phone()
-        );
+            customerUpdateRequestDTO.phone(),
+            customerUpdateRequestDTO.customerCode(),
+            customerUpdateRequestDTO.customerName()
+            );
 
         return CustomerResponseDTO.from(customer);
     }
@@ -96,6 +105,8 @@ public class CustomerService {
 
         if (!userId.equals(targetId))
             throw new CommonException(ErrorCode.USER_NOT_MATCHED);
+
+//        kafkaTemplate.send("user", "customer-delete-"+ customer.getUsername());
 
         customer.deleteUser();
     }
